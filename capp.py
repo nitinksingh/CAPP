@@ -20,11 +20,11 @@ import multiprocessing
 import argparse
 from Bio import AlignIO
 from Bio.Data.IUPACData import protein_letters
-from profiler import do_profile, timefunc
+
 
 
 def compute_copuling_matrix(aa_array):
-    """ 
+    """
     Parameters
     ---------------------
     aa_array: A m-by-n numpy array of amino acid residues representing
@@ -32,17 +32,17 @@ def compute_copuling_matrix(aa_array):
 
     Return
     ----------------------
-    coupling_mat_prunned: An n-by-n numpy array representing the prunned 
+    coupling_mat_prunned: An n-by-n numpy array representing the prunned
             coupling matrix.
     """
     m, n = aa_array.shape
     rand_idx = np.random.choice(m,size=m)
-    
+
     # Compute phi-mixing coeff
     coupling_mat = compute_pairwise_phimix(aa_array, rand_idx, m, n)
     # Prunning step
     coupling_mat_prunned = prune_with_dpi(coupling_mat, n)
-    
+
     return coupling_mat_prunned
 
 
@@ -52,8 +52,8 @@ def phimix_x_given_y(x, y, m):
     len_alphabets = len(alphabets)
     keys = [a+b for a in alphabets for b in alphabets]
     joint_dict = dict.fromkeys(keys, 0)
-    
-    # Crosstab to get joint dist 
+
+    # Crosstab to get joint dist
     for i in range(m):
         joint_dict[x[i]+y[i]] += 1
 
@@ -74,19 +74,17 @@ def phimix_x_given_y(x, y, m):
     return phimix
 
 
-#@timefunc
-#@do_profile(follow=[phimix_x_given_y])
 def compute_pairwise_phimix(aa_array, rand_idx, m, n):
+    """ Compute pairwise phi-mixing coefficient among all residues"""
     coupling_mat = np.diag(np.ones(n))
     # Compute pairwise phi-mixing coefficient
     for i,j in itertools.permutations(range(n), 2):
         x = aa_array[rand_idx, i]
         y = aa_array[rand_idx, j]
         coupling_mat[j, i] = phimix_x_given_y(x, y, m)
-    
+
     return coupling_mat
- 
-#@timefunc   
+
 def prune_with_dpi(coupling_mat, n):
     """ Data Processing Inequality based prunning """
     coupling_mat_prunned = np.copy(coupling_mat)
@@ -99,19 +97,25 @@ def prune_with_dpi(coupling_mat, n):
 
 
 def parse_args(arg_list):
-    parser = argparse.ArgumentParser()
+    description = """ Coupling analysis of co-evolving protein residues with
+        phi-mixing coefficient. This method predicts the co-evolutionary
+        interaction between pairwise amino acid residues of a protein given
+        multi-alignment sequences in FASTA format.
+
+        """
+    parser = argparse.ArgumentParser(description=description)
     parser.add_argument('fasta_file', action='store', help='Input fasta file')
 
     parser.add_argument('-o', action='store', default=None, dest='outfile',
-                    help='Output file name. ')
-   
-    parser.add_argument('-b', action='store', default=10, type=int,
+                    help='Output file name. default: fasta_file.csv')
+
+    parser.add_argument('-b', action='store', default=100, type=int,
                     dest='bs',
-                    help='Number of bootstraps to run')
-                    
+                    help='Number of bootstraps to run. default: 100')
+
     parser.add_argument('-t', action='store', default=0, type=float,
                     dest='threshold',
-                    help='Threshold to drop low confidence interactions')
+                    help='Threshold to drop low confidence interactions. default: 0')
 
     parser.add_argument('-v', action='version', version='%(prog)s 0.1')
 
@@ -121,9 +125,9 @@ def parse_args(arg_list):
     bs = results.bs
     threshold = results.threshold
     outfile = results.outfile
-    
+
     return (fasta_file, bs, threshold, outfile)
-    
+
 
 if __name__=='__main__':
 
@@ -136,7 +140,7 @@ if __name__=='__main__':
     align_array = np.array([list(rec) for rec in alignment], np.character)
     print('Input FASTA file read: %d sequences of %d residues' % align_array.shape)
 
-    align_array_list = [align_array[:,:5]]*bs
+    align_array_list = [align_array[:,:10]]*bs
     np.random.seed(2015)
     print('Number of boostraps: %d, threshold: %f' %(bs, threshold))
 
@@ -146,16 +150,16 @@ if __name__=='__main__':
     coupling_mat_list = pool.map(compute_copuling_matrix, align_array_list)
     end = time.time()
 
-        
+
     # Averaging over all of the bootstrap runs
     coupling_matrix = np.mean(np.array(coupling_mat_list), axis=0)
 
     # Thresholding step
     thres = np.percentile(coupling_matrix, threshold*100)
     coupling_matrix[coupling_matrix < thres] = 0
-    
+
     if not outfile:
         outfile = fasta_file + '.csv'
     np.savetxt(outfile, coupling_matrix, fmt='%.3f')
-    
+
     print('Finished. Time elapsed: %f seconds' %(end - start))
