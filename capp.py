@@ -19,7 +19,7 @@ import time
 import multiprocessing
 import argparse
 from Bio import AlignIO
-from Bio.Data.IUPACData import protein_letters
+from Bio.Data.IUPACData import extended_protein_letters
 
 
 
@@ -48,7 +48,7 @@ def compute_copuling_matrix(aa_array):
 
 def phimix_x_given_y(x, y, m):
     """ Compute phi-mixing coefficient between amino acid sequence x and y"""
-    alphabets = list(protein_letters + '-')
+    alphabets = list(extended_protein_letters + '-')
     len_alphabets = len(alphabets)
     keys = [a+b for a in alphabets for b in alphabets]
     joint_dict = dict.fromkeys(keys, 0)
@@ -139,6 +139,7 @@ if __name__=='__main__':
     alignment = AlignIO.read(fasta_file, "fasta")
     align_array = np.array([list(rec) for rec in alignment], np.character)
     print('Input FASTA file read: %d sequences of %d residues' % align_array.shape)
+
 
     align_array_list = [align_array[:,:10]]*bs
     np.random.seed(2015)
