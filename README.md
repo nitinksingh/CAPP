@@ -1,9 +1,15 @@
 # CAPP
-Coupling Analysis of Protein residues with Phi-mixing Coefficient 
+**CAPP: Coupling Analysis of Protein residues with Phi-mixing Coefficient**
 
-This project aims to predict co-evolutionary coupling among amino acid residues.
+This project aims to predict co-evolutionary coupling among amino acid residues. Its currently under development. 
+Please feel free to contact us if you have any comment/suggestion.
 
-# Installation
+```
+Alexey Morgunov, LMB, University of Cambridge, UK
+Nitin Singh, The University of Texas at Dallas, USA
+```
+
+## Installation
 Download or clone this repository. This python program depends on biopython module that can be installed by
 ```bash
 pip install biopython
