@@ -107,7 +107,7 @@ def parse_args(arg_list):
     parser.add_argument('fasta_file', action='store', help='Input fasta file')
 
     parser.add_argument('-o', action='store', default=None, dest='outfile',
-                    help='Output file name. default: fasta_file.csv')
+                    help='Output file name. default: fasta_file.txt')
 
     parser.add_argument('-b', action='store', default=100, type=int,
                     dest='bs',
@@ -141,7 +141,7 @@ if __name__=='__main__':
     print('Input FASTA file read: %d sequences of %d residues' % align_array.shape)
 
 
-    align_array_list = [align_array[:,:10]]*bs
+    align_array_list = [align_array[:,:76]]*bs
     np.random.seed(2015)
     print('Number of boostraps: %d, threshold: %f' %(bs, threshold))
 
@@ -160,7 +160,7 @@ if __name__=='__main__':
     coupling_matrix[coupling_matrix < thres] = 0
 
     if not outfile:
-        outfile = fasta_file + '.csv'
+        outfile = fasta_file + '.txt'
     np.savetxt(outfile, coupling_matrix, fmt='%.3f')
 
     print('Finished. Time elapsed: %f seconds' %(end - start))
