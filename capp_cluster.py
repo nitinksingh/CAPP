@@ -17,7 +17,7 @@ from Bio import AlignIO
 from IPython.parallel import Client
 
 
-def compute_copuling_matrix(fasta_file):
+def compute_coupling_matrix(fasta_file):
 
     """
     Parameters
@@ -164,7 +164,7 @@ if __name__=='__main__':
 
     lview = rc.load_balanced_view()
     lview.block = True
-    coupling_mat_list = lview.map(compute_copuling_matrix, [fasta_file]*bs)
+    coupling_mat_list = lview.map(compute_coupling_matrix, [fasta_file]*bs)
 
     # Averaging over all of the bootstrap runs
     coupling_matrix = numpy.mean(numpy.array(coupling_mat_list), axis=0)

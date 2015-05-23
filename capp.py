@@ -19,11 +19,11 @@ import time
 import multiprocessing
 import argparse
 from Bio import AlignIO
-from Bio.Data.IUPACData import extended_protein_letters
+from Bio.Data.IUPACData import protein_letters
 
 
 
-def compute_copuling_matrix(aa_array):
+def compute_coupling_matrix(aa_array):
     """
     Parameters
     ---------------------
@@ -48,14 +48,25 @@ def compute_copuling_matrix(aa_array):
 
 def phimix_x_given_y(x, y, m):
     """ Compute phi-mixing coefficient between amino acid sequence x and y"""
-    alphabets = list(extended_protein_letters + '-')
+    alphabets = list(protein_letters + '-')
     len_alphabets = len(alphabets)
     keys = [a+b for a in alphabets for b in alphabets]
     joint_dict = dict.fromkeys(keys, 0)
 
-    # Crosstab to get joint dist
+
+    # Crosstab to get joint dist. Treat extended/extra letters to '-'
     for i in range(m):
-        joint_dict[x[i]+y[i]] += 1
+        try:
+            joint_dict[x[i]+y[i]] += 1
+        except KeyError:
+            k1 = x[i]
+            k2 = y[i]
+            if k1 not in alphabets:
+                k1 = '-'
+            if k2 not in alphabets:
+                k2 = '-'
+
+            joint_dic[k1+k2] += 1
 
     theta = np.array([joint_dict[k] for k in keys]).reshape((len_alphabets, len_alphabets))
 
@@ -148,7 +159,7 @@ if __name__=='__main__':
     start = time.time()
     # Run paralle workers for each bootstrap
     pool = multiprocessing.Pool()
-    coupling_mat_list = pool.map(compute_copuling_matrix, align_array_list)
+    coupling_mat_list = pool.map(compute_coupling_matrix, align_array_list)
     end = time.time()
 
 
