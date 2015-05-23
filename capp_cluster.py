@@ -36,7 +36,7 @@ def compute_copuling_matrix(fasta_file):
     import time
     import argparse
     from Bio import AlignIO
-    from Bio.Data.IUPACData import extended_protein_letters
+    from Bio.Data.IUPACData import protein_letters
 
 
     # Read the fasta file - Alexey
@@ -49,14 +49,24 @@ def compute_copuling_matrix(fasta_file):
 
     def phimix_x_given_y(x, y, m):
         """ Compute phi-mixing coefficient between amino acid sequence x and y"""
-        alphabets = list(extended_protein_letters + '-')
+        alphabets = list(protein_letters + '-')
         len_alphabets = len(alphabets)
         keys = [a+b for a in alphabets for b in alphabets]
         joint_dict = dict.fromkeys(keys, 0)
 
-        # Crosstab to get joint dist
+        # Crosstab to get joint dist. Treat extended/extra letters to '-'
         for i in range(m):
-            joint_dict[x[i]+y[i]] += 1
+            try:
+                joint_dict[x[i]+y[i]] += 1
+            except KeyError:
+                k1 = x[i]
+                k2 = y[i]
+                if k1 not in alphabets:
+                    k1 = '-'
+                if k2 not in alphabets:
+                    k2 = '-'
+
+                joint_dic[k1+k2] += 1
 
         theta = numpy.array([joint_dict[k] for k in keys]).reshape((len_alphabets, len_alphabets))
 
@@ -134,6 +144,8 @@ def parse_args(arg_list):
     bs = results.bs
     threshold = results.threshold
     outfile = results.outfile
+    if not outfile:
+        outfile = fasta_file + '.txt'
 
     return (fasta_file, bs, threshold, outfile)
 
@@ -161,8 +173,6 @@ if __name__=='__main__':
     thres = numpy.percentile(coupling_matrix, threshold*100)
     coupling_matrix[coupling_matrix < thres] = 0
 
-    if not outfile:
-        outfile = fasta_file + '.txt'
     numpy.savetxt(outfile, coupling_matrix, fmt='%.3f')
 
     end = time.time()
