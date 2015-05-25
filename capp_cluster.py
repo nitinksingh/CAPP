@@ -66,7 +66,7 @@ def compute_coupling_matrix(fasta_file):
                 if k2 not in alphabets:
                     k2 = '-'
 
-                joint_dic[k1+k2] += 1
+                joint_dict[k1+k2] += 1
 
         theta = numpy.array([joint_dict[k] for k in keys]).reshape((len_alphabets, len_alphabets))
 

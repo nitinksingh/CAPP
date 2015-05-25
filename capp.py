@@ -66,7 +66,7 @@ def phimix_x_given_y(x, y, m):
             if k2 not in alphabets:
                 k2 = '-'
 
-            joint_dic[k1+k2] += 1
+            joint_dict[k1+k2] += 1
 
     theta = np.array([joint_dict[k] for k in keys]).reshape((len_alphabets, len_alphabets))
 
