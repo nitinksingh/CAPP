@@ -150,7 +150,7 @@ if __name__=='__main__':
     print('Input FASTA file read: %d sequences of %d residues' % align_array.shape)
 
 
-    align_array_list = [align_array[:,:76]]*bs
+    align_array_list = [align_array]*bs
     np.random.seed(2015)
     print('Number of boostraps: %d, threshold: %f' %(bs, threshold))
 
