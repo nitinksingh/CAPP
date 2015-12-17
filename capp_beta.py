@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Coupling analysis of co-evolving protein residues with phi-mixing
+Coupling analysis of co-evolving protein residues with beta-mixing
 coefficient. A method to predict the co-evolutionary interaction between
 pairwise amino acid residues of a protein.
 
-Created on Thu Apr 30 11:56:33 2015
+Created on Thu Dec 17 11:56:33 2015
 
 @author: nitin
 """
@@ -37,16 +37,16 @@ def compute_coupling_matrix(aa_array):
     m, n = aa_array.shape
     rand_idx = np.random.choice(m, size=m)
 
-    # Compute phi-mixing coeff
-    coupling_mat = compute_pairwise_phimix(aa_array, rand_idx, m, n)
+    # Compute beta-mixing coeff
+    coupling_mat = compute_pairwise_betamix(aa_array, rand_idx, m, n)
     # Prunning step
     coupling_mat_prunned = prune_with_dpi(coupling_mat, n)
 
     return coupling_mat_prunned
 
 
-def phimix_x_given_y(x, y, m):
-    """ Compute phi-mixing coefficient between amino acid sequence x and y"""
+def betamix_xy(x, y, m):
+    """ Compute beta-mixing coefficient between amino acid sequence x and y"""
     alphabets = list(protein_letters + '-')
     len_alphabets = len(alphabets)
     keys = [a+b for a in alphabets for b in alphabets]
@@ -73,24 +73,20 @@ def phimix_x_given_y(x, y, m):
     beta = np.sum(theta, axis=0)
     product = np.outer(alpha, beta)
 
-    # Handle 0s in the y marginal
-    beta[beta == 0] = 10**-4
-    gamma_scaled = np.sum(np.fabs(theta - product), axis=0)/beta
+    betamix = 0.5*np.sum(np.fabs(theta - product))
 
-#    gamma_scaled[np.isnan(gamma_scaled)] = 0
-    phimix = 0.5*np.max(gamma_scaled)
-
-    return phimix
+    return betamix
 
 
-def compute_pairwise_phimix(aa_array, rand_idx, m, n):
-    """ Compute pairwise phi-mixing coefficient among all residues"""
+def compute_pairwise_betamix(aa_array, rand_idx, m, n):
+    """ Compute pairwise beta-mixing coefficient among all residues"""
     coupling_mat = np.diag(np.ones(n))
-    # Compute pairwise phi-mixing coefficient
-    for i,j in itertools.permutations(range(n), 2):
+    # Compute pairwise beta-mixing coefficient
+    for i,j in itertools.combinations(range(n), 2):
         x = aa_array[rand_idx, i]
         y = aa_array[rand_idx, j]
-        coupling_mat[j, i] = phimix_x_given_y(x, y, m)
+        coupling_mat[j, i] = betamix_xy(x, y, m)
+        coupling_mat[i, j] = coupling_mat[j, i]
 
     return coupling_mat
 
@@ -98,7 +94,7 @@ def prune_with_dpi(coupling_mat, n):
     """ Data Processing Inequality based prunning """
     coupling_mat_prunned = np.copy(coupling_mat)
     # Examine each triplet for DPI prunning
-    for i,j,k in itertools.permutations(range(n), 3):
+    for i,j,k in itertools.permutations(range(n), 3):        
         if coupling_mat[k,i] < min(coupling_mat[k,j], coupling_mat[j,i]):
             coupling_mat_prunned[k,i] = 0
 
@@ -107,7 +103,7 @@ def prune_with_dpi(coupling_mat, n):
 
 def parse_args(arg_list):
     description = """ Coupling analysis of co-evolving protein residues with
-        phi-mixing coefficient. This method predicts the co-evolutionary
+        beta-mixing coefficient. This method predicts the co-evolutionary
         interaction between pairwise amino acid residues of a protein given
         multi-alignment sequences in FASTA format.
 

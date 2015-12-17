@@ -30,7 +30,7 @@ positional arguments:
 
 optional arguments:
   -h, --help    show this help message and exit
-  -o OUTFILE    Output file name. default: fasta_file.csv
+  -o OUTFILE    Output file name. default: fasta_file.txt
   -b BS         Number of bootstraps to run. default: 100
   -t THRESHOLD  Threshold to drop low confidence interactions. default: 0
   -v            show program's version number and exit
